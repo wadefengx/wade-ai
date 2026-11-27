@@ -1,9 +1,16 @@
 name: check
 on: [push, pull_request]
 jobs:
-  docs:
-    runs-on: ubuntu-latest
+  check:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
-      - run: python3 scripts/check.py
-      - run: bash -n scripts/install.sh && bash -n scripts/relay-init.sh
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - run: python scripts/wade.py check
+      - run: python scripts/test_wade.py -v

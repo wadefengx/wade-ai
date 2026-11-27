@@ -1,6 +1,6 @@
 # 接力与交接
 
-适用场景：同一个需求先后交给不同的 Agent 或 harness，或者需要跨会话、等上游、预计超过一天。工具可以是任意的：Codex、Claude Code、Copilot、OpenCode、DeepSeek Harness，或者以后出现的新工具。
+适用场景：同一个需求先后交给不同的 Agent 或 harness，或者需要跨会话、等上游、预计超过一天。工具可以是任意的：Codex、Claude Code、Copilot、OpenCode、DeepSeek Harness、Hermes，或者以后出现的新工具。
 
 对话上下文会被压缩，关掉 harness 就没了，能留下来的只有文件和 git 历史。所以接力只靠项目里的一个 Markdown 文件 `.ai/CONTEXT.md` 加上 git。任何能读写文件、能运行 git 的 Agent，读完它就能接着干。〔[SIM-003](../memory/sim.md#sim-003)〕
 
@@ -18,7 +18,7 @@
 | --- | --- | --- |
 | 开场一句话 | 「先读 `.ai/CONTEXT.md`，按里面的协议接着做。」 | 任何能读文件的 Agent，保证能接上 |
 | 项目指令文件 | 在项目已有的 Agent 指令文件里加一行，见下面 | 读项目 `AGENTS.md` 的工具（多数 harness 支持这个开放约定）。只读 `CLAUDE.md` 这类文件的，把同一行放进去 |
-| 用户级入口 | wade-ai 的 [AGENTS.md](../AGENTS.md) 已经写了「有 `.ai/CONTEXT.md` 就先读」，按 [README · 接入](../README.md#接入)挂上 | 本机已接入的工具。只是省事，不是必需的 |
+| 用户级入口 | wade-ai 的 [AGENTS.md](../AGENTS.md) 已经写了「有 `.ai/CONTEXT.md` 就先读」，按 [README · 接入](../README.md#接入)挂上 | 本机已接入的工具。没有用户级指令文件的（比如 Hermes）写进它的持久记忆，见 [Harness 速查](../memory/harnesses.md#新工具怎么接)。只是省事，不是必需的 |
 
 项目指令文件里加的那一行：
 
@@ -28,7 +28,7 @@
 
 这一行会进项目的 git。不想提交时就跳过这一层，靠另外两层。
 
-**开一个接力板：** 在项目根目录运行 `~/ai-kb/wade-ai/scripts/relay-init.sh "<需求名>"`，它会用[模板](../templates/CONTEXT.md)生成 `.ai/CONTEXT.md`，并把 `/.ai/CONTEXT.md` 和 `/.ai/notes/` 写进 `.git/info/exclude`，不改团队的 `.gitignore`，也不影响项目要提交的其他 `.ai/` 文件。没有 wade-ai 的 Agent 直接照下面的示例手写一份。项目已经有自己的 `.ai/` 结构或交接文件时，沿用项目的，只补缺少的栏目。
+**开一个接力板：** 在项目里运行 `python3 ~/ai-kb/wade-ai/scripts/wade.py relay "<需求名>"`（Windows 用 `py`），它会在 git 根目录用[模板](../templates/CONTEXT.md)生成 `.ai/CONTEXT.md`，并把 `/.ai/CONTEXT.md` 和 `/.ai/notes/` 写进 `.git/info/exclude`，不改团队的 `.gitignore`，也不影响项目要提交的其他 `.ai/` 文件。没有 wade-ai 的 Agent 直接照下面的示例手写一份。项目已经有自己的 `.ai/` 结构或交接文件时，沿用项目的，只补缺少的栏目。
 
 **接力板在哪里。** 它不进 git，只在创建它的那个目录里。所以：
 
@@ -42,7 +42,7 @@
 
 1. 读完 `.ai/CONTEXT.md`。
 2. 用 git 核对：`git status`、`git log --oneline -10`，必要时看 `git diff`。文件里写的和 git 对不上时，以 git 和 CI 为准，并在日志里写明差异。
-3. 「进度」里有别的 Agent 留下的「进行中」，而接力日志里没有它的「已收尾」记录：它可能还在跑，也可能被关掉了。先问 Wade；问不到时看日志最后的时间和工作区里没提交的改动，确认已经中断了再接手，并在日志里写明。
+3. 「进度」里有别的 Agent 留下的「进行中」，而接力日志里没有它的「已收尾」记录：它可能还在跑，也可能被关掉了。不要接手，也不要改动或提交它没提交的文件。先问 Wade；问不到就跳过这一项，做下一项没人认领的，都没有就停下，在日志里写明。不要靠时间间隔猜它是不是中断了。〔[SIM-007](../memory/sim.md#sim-007)〕
 4. 在要做的那一项上标「进行中」，写上 harness、模型和时间。
 
 **做的过程中**
