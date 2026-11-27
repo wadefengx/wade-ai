@@ -1,0 +1,9 @@
+name: check
+on: [push, pull_request]
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 scripts/check.py
+      - run: bash -n scripts/install.sh && bash -n scripts/relay-init.sh

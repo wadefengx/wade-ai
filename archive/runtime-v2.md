@@ -1,7 +1,7 @@
 # AI Instruction 2.0 — Hermes Runtime Operating Model
 
 Version: 2.0
-Status: active for complex work. Start with [Wade's collaboration rules](../../AGENTS.md) on every project.
+Status: archived on 2026-11-27. Replaced by [复杂任务](../playbooks/complex-work.md). Kept for history only; do not load it for new work.
 Supersedes: AI_DEV_INSTRUCTION.md (v1, 保留为 legacy 兼容)
 Inspired by: obra/superpowers (skill 化思想 / brainstorm→spec→plan→execute→review / subagent-driven / verification loop)
 
@@ -103,7 +103,7 @@ The runtime is a loop, not a pipeline. Every pass through it makes the next pass
 
 # 4. Context Loading Protocol
 
-Start with the target repository's instructions and [Wade's collaboration rules](../../AGENTS.md). Load relevant decision records, specs, architecture, skills, memory, and harness documentation when present. Check the current project state before relying on an older record.
+Start with the target repository's instructions and [Wade's collaboration rules](../AGENTS.md). Load relevant decision records, specs, architecture, skills, memory, and harness documentation when present. Check the current project state before relying on an older record.
 
 Use applicable skills early. For example, load the debugging playbook when investigating a failure and the verification playbook when choosing acceptance checks.
 
@@ -445,7 +445,7 @@ Hermes handles: execution, iteration, optimization, learning.
 - **Confirmed decisions govern.** If the latest agreed requirement differs from the spec, update the spec before relying on it. Resolve material conflicts with Wade.
 - **Plan conflicts with spec?** The human decides which governs — never silently pick one.
 - **File ownership:** lanes own disjoint file sets; shared files have a single owner; contracts are pinned in the spec before parallel work starts.
-- **Backward compatibility:** v1 (`AI_DEV_INSTRUCTION.md`) remains a legacy reference. Start new projects with [AGENTS.md](../../AGENTS.md) and use this runtime when a task needs more structure.
+- **Backward compatibility:** v1 (`AI_DEV_INSTRUCTION.md`) remains a legacy reference. Start new projects with [AGENTS.md](../AGENTS.md) and use this runtime when a task needs more structure.
 
 ---
 

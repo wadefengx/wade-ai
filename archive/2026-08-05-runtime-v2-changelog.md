@@ -1,6 +1,6 @@
 # 2026-08-05 — Runtime Operating Model 2.0 升级
 
-> 本文记录当时的升级方案。当前约定见 [AGENTS.md](../../AGENTS.md)。
+> 本文记录 2026-08-05 的升级方案，已归档。Runtime v2 于 2026-11-27 由[复杂任务](../playbooks/complex-work.md)取代，原因见 [SIM-005](../memory/sim.md#sim-005)。当前约定见 [AGENTS.md](../AGENTS.md)。
 
 ## 动机
 
