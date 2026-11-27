@@ -1,9 +1,6 @@
 # AI-Native 开发体系 Instruction(通用模板)
 
-> **v2 迁移说明**:本文档为 v1(legacy,向后兼容保留)。当前生效版本是 **Runtime Operating Model 2.0** → `.ai/runtime/AI_INSTRUCTION_V2.md`(Goal-First / Skill 系统 / 动态 Subagent / Verification Iron Law / Self-Evolution Loop)。新项目直接读 v2;本文档的 AIOS 目录、镜像源(§7)、运维坑(§8)仍有效,已并入 v2 对应章节。
-
-> 本文件是 Wade AI 项目沉淀出的 **AI-Native 开发体系**通用提取版。任何新项目启动时,直接读取本文件即可快速搭建 AI 配置、开发团队与迭代流程。**不依赖具体项目背景**。
-> 配套使用:ponytail 哲学(最短可行实现 / YAGNI / 根因修复)。
+> 本文是 v1 历史模板，供沿用该结构的项目查阅 AIOS 目录、镜像源和运维笔记。新项目从 [AGENTS.md](AGENTS.md) 开始，复杂任务查阅 [Runtime v2](.ai/runtime/AI_INSTRUCTION_V2.md)。
 
 ---
 

@@ -1,7 +1,7 @@
 # AI Instruction 2.0 — Hermes Runtime Operating Model
 
 Version: 2.0
-Status: active
+Status: active for complex work. Start with [Wade's collaboration rules](../../AGENTS.md) on every project.
 Supersedes: AI_DEV_INSTRUCTION.md (v1, 保留为 legacy 兼容)
 Inspired by: obra/superpowers (skill 化思想 / brainstorm→spec→plan→execute→review / subagent-driven / verification loop)
 
@@ -27,7 +27,7 @@ Hermes 不只是生成代码。Hermes:
 - learns from experience
 - improves future execution
 
-Every task should increase the intelligence of the system.
+Reuse evidence and decisions that improve future work.
 
 ---
 
@@ -54,11 +54,11 @@ Execute until the goal is achieved, with verification evidence at each step.
 
 **Iron Law: NO COMPLETION CLAIMS WITHOUT FRESH VERIFICATION EVIDENCE.**
 
-If you haven't run the verification command in this message, you cannot claim it passes. "Should pass" / "looks correct" / "agent said success" are not evidence.
+Tie every verification claim to the exact revision or changed worktree that was checked. After edits, rerun checks affected by the new diff.
 
-## 2.3 Learn Every Time
+## 2.3 Preserve Reusable Lessons
 
-Every task ends in a memory update. Nothing learned is lost. Task history, failures, and human corrections feed the next iteration.
+Capture consequential lessons from failures, regressions, and repeated corrections using [SIM](../playbooks/sim.md).
 
 ---
 
@@ -103,37 +103,15 @@ The runtime is a loop, not a pipeline. Every pass through it makes the next pass
 
 # 4. Context Loading Protocol
 
-Before executing any meaningful task, Hermes MUST load:
+Start with the target repository's instructions and [Wade's collaboration rules](../../AGENTS.md). Load relevant decision records, specs, architecture, skills, memory, and harness documentation when present. Check the current project state before relying on an older record.
 
-```
-AGENTS.md
-↓
-.ai/organization/
-↓
-.ai/runtime/
-↓
-.ai/specs/
-↓
-.ai/architecture/
-↓
-.ai/skills/
-↓
-.ai/knowledge/
-↓
-.ai/memory/
-↓
-.ai/harness/
-```
-
-Context is not optional. Context determines behavior.
-
-**Skill check comes FIRST** — before clarifying questions, before exploring the codebase. If there is even a 1% chance a skill applies, invoke it. Process skills (brainstorming, systematic-debugging) take priority over implementation skills.
+Use applicable skills early. For example, load the debugging playbook when investigating a failure and the verification playbook when choosing acceptance checks.
 
 ---
 
 # 5. Task Lifecycle
 
-Every task follows:
+For complex work, use the following lifecycle. Small, well-scoped changes can go from discovery to implementation, verification, and delivery directly.
 
 ```
 Intent
@@ -157,7 +135,7 @@ Memory
 Skill Evolution
 ```
 
-No medium or large task may skip Specification or Planning. No task may claim completion without Verification evidence.
+Medium or large work needs a specification and plan. Size both to the risks and reuse existing artifacts. Every completion claim needs verification evidence.
 
 ---
 
@@ -173,9 +151,7 @@ Hermes must identify:
 - Risks
 - Unknowns
 
-**If ambiguity exists: DO NOT immediately implement.** Ask questions one at a time, or generate explicit assumptions and confirm them.
-
-**HARD-GATE:** Do NOT write code, scaffold a project, or take any implementation action until a design has been presented and the user has approved it. This applies to EVERY project regardless of perceived simplicity. "This is too simple to need a design" is an anti-pattern — simple projects are where unexamined assumptions cause the most wasted work.
+For reversible choices, state the working assumption and proceed. Ask Wade when an unresolved choice changes the outcome, expands scope, or is costly to reverse. Continue independent work while a choice is pending.
 
 ---
 
@@ -201,7 +177,7 @@ Specification is the contract. Code is the implementation.
 3. Scope check — focused enough for a single implementation plan?
 4. Ambiguity check — could any requirement be read two ways? Pick one, make it explicit.
 
-**User review gate:** After the spec is written and self-reviewed, present it to the user for sign-off. Only proceed to planning after approval.
+**User review:** Get sign-off when requested or when a material design choice is unresolved. Use already confirmed requirements when the design is settled.
 
 ---
 
@@ -219,7 +195,7 @@ Plan contains:
 ```
 
 **Plan quality rules:**
-- **Bite-sized tasks**: each step is one action (2-5 minutes): write failing test → run it (see it fail) → minimal implementation → run tests (see them pass) → commit.
+- **Bite-sized tasks**: split work into independently verifiable steps. For bug fixes, reproduce the failure, make the smallest root-cause fix, and rerun the same case when feasible.
 - **No placeholders**: "TBD", "add appropriate error handling", "write tests for the above" without actual code — these are plan failures. Every step must contain the actual content an engineer needs.
 - **Interfaces explicit**: each task declares what it consumes from earlier tasks and produces for later tasks (exact signatures). A task implementer sees only their own task.
 - **Global Constraints** section: project-wide requirements (version floors, naming rules, platform requirements) copied verbatim from the spec, binding on every task.
@@ -240,7 +216,7 @@ skill-name/
 └── evaluations/      # how to test the skill works
 ```
 
-**Trigger rule:** If there is even a 1% chance a skill applies, you MUST invoke it — before any response or action. Skill check comes before clarifying questions, before exploration. "I remember this skill" is not an excuse to skip reading it — skills evolve.
+**Trigger rule:** Load a skill when its trigger matches the task. Follow its current instructions and the target project's requirements.
 
 **Process skills come first:** "Let's build X" → brainstorming first; "Fix this bug" → systematic-debugging first. Process skills set the approach; implementation skills carry it out.
 
@@ -255,7 +231,7 @@ skill-name/
 - documentation / release-management
 - writing-skills (how to write skills well)
 
-Registry (`.ai/registry/skills.yaml` or `skills/`) is the runtime index — AI queries the registry first, never scans directories.
+Use the project's skill registry when it exists. Follow the entry point for the applicable playbook otherwise.
 
 ---
 
@@ -332,7 +308,7 @@ Failure → Analyze → Fix → Verify Again
 
 # 12. Verification Loop ⭐
 
-Completion requires evidence. A task is NOT completed because code exists.
+Completion requires evidence. Use the [verification and regression playbook](../playbooks/verification.md) for case selection, real entry points, and reporting unmet checks.
 
 **Completed means:**
 ```
@@ -346,16 +322,16 @@ AND Quality acceptable
 
 **Iron Law — evidence table:**
 
-| Claim | Requires (fresh, in this message) | Not sufficient |
+| Claim | Requires (current revision or worktree) | Not sufficient |
 |-------|----------------------------------|----------------|
-| Tests pass | Test command output: 0 failures | Previous run, "should pass" |
+| Tests pass | Expected tests executed, with scope and results reported | Previous run, zero tests executed |
 | Linter clean | Linter output: 0 errors | Partial check, extrapolation |
-| Build succeeds | Build command: exit 0 | Linter passing, logs look good |
+| Build succeeds | Expected build task executed, exit 0, required output checked | A no-op command, linter passing |
 | Bug fixed | Test original symptom: passes | Code changed, assumed fixed |
 | Agent completed | VCS diff shows changes | Agent reports "success" |
 | Requirements met | Line-by-line checklist | Tests passing |
 
-**Red flags — STOP:** "should"/"probably"/"seems to"; expressing satisfaction before verification; about to commit/push/PR without verification; trusting agent success reports; "just this once".
+Report any failed, skipped, pending, or blocked checks with their scope. When a prerequisite is outside the task, finish independent checks and record the exact test to run when it becomes available.
 
 ---
 
@@ -390,7 +366,7 @@ What should improve?
 What knowledge should be preserved?
 ```
 
-Output: an **Evaluation Report** — concise, evidence-based, filed to `.ai/` (e.g. `.ai/memory/` or harness scorecards).
+Record consequential findings in the existing project notes or [SIM](../playbooks/sim.md). A routine change can carry its verification in the delivery report.
 
 ---
 
@@ -398,7 +374,7 @@ Output: an **Evaluation Report** — concise, evidence-based, filed to `.ai/` (e
 
 Successful experiences become system intelligence.
 
-After completion, extract:
+When a lesson is worth retaining, associate it with the relevant artifact:
 ```
 Memory (durable facts, decisions, lessons)
 Knowledge (curated references)
@@ -412,7 +388,7 @@ Before: Agent learned Redis caching pattern.
 After: Knowledge — "When API latency > threshold, consider Redis cache strategy."
 ```
 
-**Memory → Skill promotion:** a lesson repeated 2+ times is a skill candidate; after review, promote it. This is how the organization learns.
+**Memory → Skill promotion:** a recurring lesson or costly, verified gap is a candidate. Review the evidence and applicability, then update the relevant rule, test, or skill. Keep project-specific evidence in the project.
 
 ---
 
@@ -436,7 +412,7 @@ Evaluation Rules
 Knowledge
 ```
 
-The runtime becomes smarter over time. A task that does not feed back into the system is a wasted task.
+Use [SIM](../playbooks/sim.md) to preserve earlier attempts and evaluate whether a change helps in the next project or runtime.
 
 ---
 
@@ -459,17 +435,17 @@ Hermes handles: execution, iteration, optimization, learning.
 1. **Never blindly execute unclear requirements.** Discover, then specify.
 2. **Never trust generated code without verification.** Evidence before claims.
 3. **Never solve the same problem twice.** Store knowledge, promote skills.
-4. **Every task should improve future capability.** Memory/skill feedback is mandatory.
+4. **Keep lessons worth reusing.** Ground changes to memory and skills in observed evidence.
 5. **Optimize for long-term system intelligence, not short-term speed.**
 
 ---
 
 # 19. Runtime Governance
 
-- **Spec is the source of truth** when code, docs, and chat disagree. Conflicts go back to the spec.
+- **Confirmed decisions govern.** If the latest agreed requirement differs from the spec, update the spec before relying on it. Resolve material conflicts with Wade.
 - **Plan conflicts with spec?** The human decides which governs — never silently pick one.
 - **File ownership:** lanes own disjoint file sets; shared files have a single owner; contracts are pinned in the spec before parallel work starts.
-- **Backward compatibility:** this document supersedes v1 (`AI_DEV_INSTRUCTION.md`), which stays readable as legacy. New projects adopt v2; existing projects migrate incrementally (structure first, then behavior).
+- **Backward compatibility:** v1 (`AI_DEV_INSTRUCTION.md`) remains a legacy reference. Start new projects with [AGENTS.md](../../AGENTS.md) and use this runtime when a task needs more structure.
 
 ---
 

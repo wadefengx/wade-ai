@@ -1,21 +1,29 @@
-# Wade AI Knowledge Base — AI Agent Entry (Runtime v2)
+# Wade 的 AI 开发约定
 
-本仓库是 Wade 的 AI 使用沉淀知识库(不含产品代码,只含可复用方法论)。
+本文件可作为任何项目的协作入口。开工前读本文件、目标仓库的 `AGENTS.md`、相关目录约定和当前任务。Wade 本轮的明确要求、目标仓库的具体约定和已确认的验收标准决定范围。本文件补充跨项目默认做法。
 
-## Context loading order
+## 开工
 
-1. `README.md` — 仓库索引与读取顺序。
-2. `.ai/runtime/AI_INSTRUCTION_V2.md` — **Runtime Operating Model 2.0(当前生效)**:Mission / Goal-First / Context Loading / Task Lifecycle / SDD / Planning / Skill 系统 / 动态 Subagent / Execution·Verification·Review·Memory·Self-Evolution Loops / Runtime Governance。
-3. `AI_DEV_INSTRUCTION.md` — v1(legacy,向后兼容):AI-Native 开发体系总纲(SDD 流程 / AIOS 目录 / lane 模式 / 质量门禁 / 镜像源 / 运维坑)。新项目按 v2 起步,v1 保留可读。
-4. `ponytail.md` — 开发哲学(最短可行实现 / YAGNI / 根因修复 / 证据先于断言)。
+- 先对齐交付结果、验收标准和不能动的行为。核对当前分支、目标基线与工作区，保留已有改动。
+- 以适用的当前资料为准：需求看已确认的 spec 或决定，接口看真实调用和契约，UI 优先读当前设计源。旧聊天、截图、历史方案和 mock 可以补充上下文。
+- 小改动直接做，必要时说清可逆假设。涉及跨模块、迁移、公开契约或较大变更时，先写目标、兼容范围、验收和实施顺序。遇到会改变交付范围或代价高且难回退的未决选择才请 Wade 决定。已有授权的步骤继续推进。
+- 先追调用链，复用现有入口、测试工具和同类实现。修根因，保持改动易读。明确只改测试时，守住生产代码边界。确认必须改生产代码才能解决时，向 Wade 说明证据和所需范围。
 
-## 使用场景
+## 验收
 
-- **开始新项目**:读 `.ai/runtime/AI_INSTRUCTION_V2.md`(Runtime Operating Model 2.0)——Goal First,Spec 先行,Plan bite-size,Subagent 执行,Verification 出证据,Memory/Skill 回流。
-- **开发中**:遵守 ponytail 哲学;任何任务先查 skill(1% 可能相关就 MUST invoke);完成后把可复用经验回流本仓库(重复 2 次以上 → 提炼)。
+- 修 bug 先复现原始症状或失败日志。优先复用已有用例，缺少防复发覆盖时补一例，能做时确认同一用例修前失败、修后通过。
+- 先跑针对性用例，再按影响跑相邻行为和仓库门禁。改路由、构建、包或 UI 时，从实际会使用的入口验收，检查受影响的旧行为和产物。详细做法见[验证与回归](.ai/playbooks/verification.md)。
+- 证据绑定本次改动后的版本。交付时说清改了什么、哪些检查通过、失败、跳过或受阻。区分 mock、本地、CI 和真实环境结果。外部依赖未就绪时先完成独立工作，留下恢复条件和具体复测场景。
+- 跑完回看 diff 和工作区，排除意外生成的快照、锁文件和无关改动。按已经明确的权限提交、推送或开 PR。受托跟进 CI 时，跟到约定的检查结束，并处理范围内的失败。
 
-## 沉淀规则
+## 交付和沉淀
 
-- 重复出现 2 次以上的可复用做法 → 提炼进本仓库(skill 化:SKILL.md + examples/templates/scripts)。
-- 文档保持简洁(表格/清单),不写长篇叙事。
-- 完整落地范例见 [wadefengx/wade-ai-workspace](https://github.com/wadefengx/wade-ai-workspace)(AIOS 组织层 + specs + harness + Dashboard)。
+- PR 和交付说明先写现象或根因，再写关键改动和验证结果。沿用目标仓库和 Wade 既有 PR 的写法，方便直接复核。
+- 遇到重复误判、昂贵返工或可复用的验证缺口，按 [SIM](.ai/playbooks/sim.md) 留下根因、尝试和证据。按已约定的可见范围保存 spec、日志和截图。公开 wade-ai 只收脱敏、可迁移的经验。
+
+## 按需继续读
+
+- [Runtime v2](.ai/runtime/AI_INSTRUCTION_V2.md) · 复杂交付、SDD、多 Agent 协作和接力。
+- [Ponytail](ponytail.md) · 实现的取舍和简化边界。
+- [Tags 回归案例](.ai/examples/tags-regression.md) · 从生产入口抓到单测可能漏掉的问题。
+- [v1](AI_DEV_INSTRUCTION.md) · 旧项目查阅。
