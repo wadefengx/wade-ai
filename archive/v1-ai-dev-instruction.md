@@ -1,6 +1,6 @@
 # AI-Native 开发体系 Instruction(通用模板)
 
-> 本文是 v1 历史模板，供沿用该结构的项目查阅 AIOS 目录、镜像源和运维笔记。新项目从 [AGENTS.md](AGENTS.md) 开始，复杂任务查阅 [Runtime v2](.ai/runtime/AI_INSTRUCTION_V2.md)。
+> 已归档（2026-11-27）。这是 v1 历史模板，只供沿用该结构的旧项目查阅 AIOS 目录、镜像源和运维笔记。其中的中文报错、技术栈选型和镜像源等约定不适用于新项目。新项目从 [AGENTS.md](../AGENTS.md) 开始，复杂任务见[复杂任务](../playbooks/complex-work.md)。
 
 ---
 
