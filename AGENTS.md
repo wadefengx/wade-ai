@@ -54,5 +54,6 @@
 | 扮演维护者评审，或处理 PR 评审意见 | [评审与修复循环](playbooks/review.md) |
 | 换 Agent 或 harness 接力、跨会话、等上游 | [接力与交接](playbooks/handoff.md) |
 | 反复犯错、经验要迁移、改规则 | [SIM 方法](playbooks/sim.md) · [SIM 记录](memory/sim.md) |
+| 接入新工具、工具升级，或改了接力协议要复验 | [Harness 速查](memory/harnesses.md) · [评估](README.md#评估) |
 | 实现上的取舍 | [Ponytail](ponytail.md) |
 | 看一个真实入口验收的例子 | [Tags 回归案例](examples/tags-regression.md) |

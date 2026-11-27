@@ -1,5 +1,14 @@
 # 变更记录
 
+## 2026-11-27 · 评估器和跨平台
+
+- 脚本合并成纯 Python 的 `scripts/wade.py`（`install`、`relay`、`check`），取代 `install.sh`、`relay-init.sh`、`check.py`。Windows 上建不了软链时改为复制并加标记。
+- 新增 `scripts/eval.py`：在临时仓库里调用真实 harness，跑 `entry`（入口自检，带对照组）、`relay`（三棒接力）、`claimed`（别人进行中的项不能抢），结果存到 [evals/results](evals/results/)。任意 harness 用命令模板就能接入。见 [SIM-006](memory/sim.md#sim-006)。
+- 新增 `scripts/test_wade.py`，用一个按协议工作的假 Agent 自测；CI 改为 Linux、macOS、Windows 三平台。
+- 接力协议：「进行中」的项问不到用户时跳过，不靠时间间隔判断中断；日志时间用 `date` 取。见 [SIM-007](memory/sim.md#sim-007)。
+- 新增 [Harness 速查](memory/harnesses.md)：各工具的入口、一次性调用、隔离方式和坑，含 Hermes 和 Windows。
+- SIM-003、SIM-004 回填了 Codex、Copilot CLI、Hermes 的多组实测。
+
 ## 2026-11-27 · 入口 v3
 
 - 结构扁平化：`.ai/playbooks` 和 `.ai/examples` 移到根目录下的 `playbooks/` 和 `examples/`；v1、Runtime v2 和当时的升级记录移到 `archive/`。

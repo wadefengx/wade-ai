@@ -6,9 +6,11 @@
 | --- | --- | --- | --- |
 | [SIM-001](#sim-001) | 变更清单为空、缺失或出错时结果一样，CI 可能漏检 | 保留，下游待复验 | [验证与回归](../playbooks/verification.md) |
 | [SIM-002](#sim-002) | 模拟维护者评审没有停止条件，方案先膨胀再收缩 | 待验证 | [评审与修复循环](../playbooks/review.md) |
-| [SIM-003](#sim-003) | 换 Agent 或 harness 后接不上进度，交接文件被历史淹没 | 保留，三棒实测通过，真实需求待复验 | [接力与交接](../playbooks/handoff.md) |
-| [SIM-004](#sim-004) | 常用工具没有接入入口，项目专用指令全局生效 | 保留，Codex 和 Copilot 实测通过，Claude 受阻 | [README · 接入](../README.md#接入) |
+| [SIM-003](#sim-003) | 换 Agent 或 harness 后接不上进度，交接文件被历史淹没 | 保留，Codex、Copilot、Hermes 多组接力通过，真实需求待复验 | [接力与交接](../playbooks/handoff.md) |
+| [SIM-004](#sim-004) | 常用工具没有接入入口，项目专用指令全局生效 | 保留，Codex、Copilot、Hermes 通过，Claude 受阻 | [README · 接入](../README.md#接入) |
 | [SIM-005](#sim-005) | Runtime v2 篇幅过长，部分硬规则和工具约定冲突 | 待验证 | [复杂任务](../playbooks/complex-work.md) |
+| [SIM-006](#sim-006) | 规则和接力只靠手工抽查，自检题能被猜中，Windows 跑不了脚本 | 保留，评估器和三平台 CI 已用 | [README · 评估](../README.md#评估) |
+| [SIM-007](#sim-007) | 靠时间间隔判断「进行中」已中断，接手并提交了别人未提交的改动 | 保留，修前 2/3 失败，修后 3/3 通过 | [接力与交接](../playbooks/handoff.md) |
 
 ## SIM-001
 
@@ -90,6 +92,17 @@
 - 迁移判断：直接复用。协议只依赖 Markdown 和 git，换 harness、换模型、换项目都不用改。
 - 换项目复验：在下一个真实的跨工具接力需求里，每换一次工具，先只问「之前做了什么，你接下来做什么」，和接力板对照，记录答对没有；也记录有没有出现过两个 Agent 同时认领同一项的情况。
 
+### 2026-11-27 · 复验：用评估器跑多组真实 harness
+
+- 评估上下文：macOS，`scripts/eval.py relay`（见 [SIM-006](#sim-006)），同样的三项任务，每组换顺序、换模型、换发现方式。结果在 [evals/results](../evals/results/)。
+- 实测：下面每组都是三棒全过（每一棒只改自己那一项、commit、勾进度、写日志，前几棒的改动都在）。
+  - 开场一句话：Codex（gpt-6.1-terra）→ Copilot（claude-sonnet-5）→ Hermes（deepseek-flash）；Hermes → Codex → Copilot（claude-haiku-5.5）。
+  - 项目指针：Hermes → Copilot（gemini-4-neon）→ Codex（gpt-6-luna）。
+  - 用户级入口：Codex → Copilot（gpt-6.2-astra）→ Hermes。Hermes 没有用户级指令文件，靠它记忆里的一条指针接上。
+  - 自定义命令模板（不走预设）：见 SIM-006。
+- 新问题：Hermes 写日志时间靠估，比实际晚约 10 分钟。协议第 4 条已加「时间用 `date` 取」。另一个问题记在 [SIM-007](#sim-007)。
+- 决定：保留。多 harness 这一条可以算验证过了，真实需求里的复验照旧。
+
 ## SIM-004
 
 **常用工具没有接入入口，项目专用指令全局生效**
@@ -113,6 +126,21 @@
 - 迁移判断：直接复用。各工具的入口路径以官方文档为准，工具升级后复查一次。
 - 换项目复验：换机器或换工具后，按 README 的「接入自检」走一遍。
 
+### 2026-11-27 · 尝试 2：清理冲突的全局配置，接入 Hermes，自检换成猜不到的题
+
+- 理由：Wade 同意大改。尝试 1 预计修不好的那一项（业务仓库专用的全局指令）该处理了。本机还有 Hermes，它没有用户级指令文件。
+- 改动：
+  - Copilot 的四个业务仓库专用的全局 instructions 移出 `~/.copilot/instructions/`（那个仓库里已经有自己的一份）。`copilot instruction list` 现在只剩通用的一份和 wade-ai。
+  - Codex 的默认模型改为本账号能调用的模型，原来的模型调用全部失败。
+  - Hermes 的记忆里有一条指向已归档的 Runtime v2，改为指向 wade-ai 的 `AGENTS.md` 和接力协议。Claude 的一份项目记忆也有同样的问题，一起改了。
+  - 自检题从「新开 PR 要不要先问」换成「交接写在哪个文件」，原因见 SIM-006。
+  - 各工具的入口和坑整理进 [Harness 速查](harnesses.md)。
+- 验证前预期：Codex、Copilot、Hermes 都能答出 `.ai/CONTEXT.md`，对照组都答不出；Copilot 在其他目录不再被要求跑业务仓库的脚本。
+- 评估上下文：macOS 本机，`scripts/eval.py entry`。
+- 实测：三个都答出 `.ai/CONTEXT.md`；`--control` 对照组三个都答「无法判断」。Copilot 加载的指令只剩两份。Claude 仍未登录，OpenCode 和 DeepSeek Harness 仍未安装。
+- 决定：保留。改动前的全局配置都有备份，可以还原。
+- 迁移判断：直接复用。换机器时除了接入，还要搜一下各工具记忆里有没有旧路径。
+
 ## SIM-005
 
 **Runtime v2 篇幅过长，部分硬规则和工具约定冲突**
@@ -129,3 +157,45 @@
 - 评估上下文：wade-ai 的规则改动。
 - 实测：待验证。
 - 决定：待验证。出问题时在这里追加尝试，再决定要不要恢复。
+
+## SIM-006
+
+**规则和接力只靠手工抽查，自检题能被猜中，Windows 跑不了脚本**
+
+适用范围：改了 wade-ai 的入口或接力协议，接入新工具、工具升级，或者在 Windows 上使用。
+旧行为基线：SIM-003 和 SIM-004 的实测都是手工搭临时仓库、手工敲命令，换一个工具或模型就要重来一遍，结果也没留存。入口自检问的是「新开 PR 要不要先问」，Hermes 在没有入口的对照组里也答「要」，说明这题能靠常识蒙对。脚本是 bash，Windows 上不能用，Wade 有几个 harness 只在 Windows 上配置。
+相关规则：[README · 评估](../README.md#评估)、[Harness 速查](harnesses.md)。
+
+### 2026-11-27 · 尝试 1：可复跑的评估器，加上纯 Python 的脚本和三平台 CI
+
+- 理由：SIM 要求每次改动都有实测，手工跑代价太大就会被跳过。评估器把「临时仓库、接力板、调用 harness、检查结果、存档」固定下来，任意 harness 用一个命令模板就能接入。自检题要换成没有入口就不可能答对的，并且要有对照组。脚本改成只用标准库的 Python，Windows 上建不了软链时改为复制。思路和 SWE-bench 一类的 Agent 评测相同：真实 Agent 跑任务，用硬检查判结果，只取了最小的部分。
+- 验证前预期：一条命令就能跑完 entry、relay、claimed 中的一个场景，结果自动存档；对照组答不对；CI 在 Windows 上通过；不在预设里的 harness 用命令模板就能测。
+- 评估上下文：macOS 本机的 Codex、Copilot CLI、Hermes；GitHub Actions 的 Linux、macOS、Windows。
+- 实测：
+  - entry、relay、claimed 都跑通了，结果见 [evals/results](../evals/results/)。对照组三个 harness 都答不出。
+  - 用命令模板 `"anyharness=hermes --yolo -z {prompt}"` 代替预设跑了一组接力（`--via project`），三棒全过。命令模板不隔离用户配置，Hermes 的记忆里有指向 wade-ai 的指针，所以这一组只证明「任意命令都能接进评估」，不能当作「项目指针」这一层的证据。
+  - 评估器本身用一个按协议工作的假 Agent 自测（`test_wade.py`），CI 在三个平台上都跑。
+  - claimed 场景第一次跑就找出了一个协议问题，见 SIM-007。
+  - 代码评审又找出评估器自己的六个问题，都已改：命令模板不隔离却没注明；临时目录里刷新过的登录令牌会被删掉，可能让本机登出；Agent 输出里的代码块会打乱报告的 fence；Windows 上超时杀不掉 npm 包装下的 node 子进程；Windows 路径的 `/` 和 `\\` 写法没脱敏；claimed 场景什么都不做也能通过（「接着做第 3 项」原来只是参考项）。
+  - 没测到的：真实 harness 在 Windows 上运行（只有 CI 跑了脚本和假 Agent）；Claude Code、OpenCode、DeepSeek Harness。
+- 决定：保留。
+- 迁移判断：直接复用。评估器不依赖具体项目，换机器、换工具后跑一次 `entry`；改了协议跑一次 `relay` 和 `claimed`。
+- 换项目复验：在 Windows 上用 `py scripts\eval.py entry <harness>` 跑一次 Wade 在那台机器上用的工具，回填这里。
+
+## SIM-007
+
+**靠时间间隔判断「进行中」已中断，接手并提交了别人未提交的改动**
+
+适用范围：多个 Agent 共用一块接力板，有一项标着别人「进行中」，问不到用户。
+旧行为基线：协议第 2 条写的是「问不到时，看日志最后的时间和未提交改动，判断已中断再接手」。claimed 场景里，Copilot（claude-sonnet-5）和 Hermes 都判断「已经过了 10 分钟、只有一行 WIP 注释，OpenCode 中断了」，接手了第 2 项，把 OpenCode 未提交的改动删掉或者一起提交了。Codex 跳过了。2/3 失败。
+相关规则：[接力与交接](../playbooks/handoff.md)开工第 3 步、[接力板模板](../templates/CONTEXT.md)协议第 2 条。
+
+### 2026-11-27 · 尝试 1：不接手，跳过，没有可做的就停下
+
+- 理由：Agent 没办法知道另一个 harness 是不是还开着，时间间隔和进程列表都不可靠（别的工具可能在另一台机器、另一个终端里）。误判的代价是覆盖或者混进别人的改动，等一下的代价只是慢一点，所以默认不接手，要接手必须由用户确认。
+- 验证前预期：同一个 claimed 场景，三个 harness 都跳过第 2 项，`nav.html` 的未提交改动原样保留，只做第 3 项并提交。如果还有 Agent 以「中断」为由接手，说明措辞还不够明确。
+- 评估上下文：macOS，`scripts/eval.py claimed`，Codex（gpt-6.1-terra）、Copilot（claude-sonnet-5）、Hermes（deepseek-flash）。场景里把 Codex 那一棒的提交时间也改成了和日志一致，避免「日志和 git 对不上」干扰判断。
+- 实测：3/3 通过。三个都在日志里写明跳过第 2 项的原因，`git status` 里只剩 OpenCode 的 `nav.html` 改动。修前的三份结果以 `-pre-sim007` 结尾，也在 [evals/results](../evals/results/) 里。
+- 决定：保留。
+- 迁移判断：直接复用。任何多 Agent 共享的任务清单都一样：认领没有释放时，不靠猜，交给人判断。
+- 换项目复验：真实接力里如果出现过「被卡在别人认领的项上」，记录卡了多久、用户是怎么处理的，看要不要加一个显式的「释放」写法。
